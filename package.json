@@ -1,0 +1,39 @@
+{
+  "name": "dpg-agent-interface",
+  "version": "1.0.0",
+  "description": "DPG Agent Interface - API gateway for external agents to interact with DPG",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup",
+    "start": "node dist/server.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "10.1.0",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.6",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.3.1",
+    "drizzle-orm": "^0.29.3",
+    "drizzle-zod": "^0.5.1",
+    "fastify": "^5.0.0",
+    "fastify-plugin": "^5.1.0",
+    "fastify-type-provider-zod": "3.0.0",
+    "nanoid": "^5.0.4",
+    "pg": "^8.11.3",
+    "zod": "3.25.28"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^20.10.6",
+    "drizzle-kit": "^0.20.14",
+    "tsup": "^8.0.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
