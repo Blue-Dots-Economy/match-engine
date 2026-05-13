@@ -12,6 +12,10 @@ const ConfigSchema = z.object({
   dpgDb: z.object({
     url: z.string().url(),
   }),
+  dpg: z.object({
+    instanceUrl: z.string().url(),
+    schemaBaseUrl: z.string().url(),
+  }),
   app: z.object({
     host: z.string(),
     port: z.coerce.number(),
@@ -36,6 +40,10 @@ export const config = ConfigSchema.parse({
   dpgDb: {
     url: process.env.DPG_DATABASE_URL!,
   },
+  dpg: {
+    instanceUrl: process.env.DPG_INSTANCE_URL || 'http://localhost:2742',
+    schemaBaseUrl: process.env.SCHEMA_BASE_URL || 'https://raw.githubusercontent.com/dhiway/dpg-monorepo/refs/heads/main/examples/schemas',
+  },
   app: {
     host: process.env.APP_HOST!,
     port: process.env.APP_PORT!,
@@ -55,3 +63,15 @@ export const getAgentDbUrl = () => {
 };
 
 export const getDpgDbUrl = () => config.dpgDb.url;
+
+export function getItemInstanceUrl(): string {
+  return config.dpg.instanceUrl;
+}
+
+export function buildItemSchemaUrl(
+  itemNetwork: string,
+  itemDomain: string,
+  itemType: string
+): string {
+  return `${config.dpg.schemaBaseUrl}/${itemNetwork}/network.json#/item_schemas/${itemNetwork}/${itemDomain}/${itemType}`;
+}

@@ -7,7 +7,7 @@ import { dpgDb } from '../../../db/dpg_client';
 import { dpgUsers, dpgItems } from '../../../db/dpg_schema';
 import { authenticate } from '../../../middleware/authenticate';
 import { normalizeIndianPhone } from '../../../utils/phone';
-import { config } from '../../../config';
+import {getItemInstanceUrl, buildItemSchemaUrl } from '../../../config';
 
 const CreateItemBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
@@ -89,14 +89,16 @@ const createItemHandler = async (request: CreateItemRequest, reply: FastifyReply
     }
 
     const now = new Date();
+    const itemInstanceUrl = getItemInstanceUrl();
+    const itemSchemaUrl = buildItemSchemaUrl(item_network, item_domain, item_type);
     const [newItem] = await dpgDb
       .insert(dpgItems)
       .values({
         item_network,
         item_domain,
         item_type,
-        item_instance_url: `${config.app.url}/items/${item_network}/${item_domain}/${item_type}`,
-        item_schema_url: `${config.app.url}/schema/${item_network}/${item_domain}/${item_type}`,
+        item_instance_url: itemInstanceUrl,
+        item_schema_url: itemSchemaUrl,
         item_state: item_state || {},
         item_latitude: item_latitude || null,
         item_longitude: item_longitude || null,
