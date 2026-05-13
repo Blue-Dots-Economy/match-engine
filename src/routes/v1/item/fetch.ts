@@ -1,7 +1,7 @@
 import { type FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import z from 'zod';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { eq, or } from 'drizzle-orm';
+import { eq, or, and, count } from 'drizzle-orm';
 import { dpgDb } from '../../../db/dpg_client';
 import { dpgUsers, dpgItems } from '../../../db/dpg_schema';
 import { authenticate } from '../../../middleware/authenticate';
@@ -9,26 +9,26 @@ import { normalizeIndianPhone } from '../../../utils/phone';
 
 const FetchItemsQuerySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
-  itemNetwork: z.string().optional(),
-  itemDomain: z.string().optional(),
-  itemType: z.string().optional(),
+  item_network: z.string().optional(),
+  item_domain: z.string().optional(),
+  item_type: z.string().optional(),
   limit: z.coerce.number().min(1).max(100).default(20),
   offset: z.coerce.number().min(0).default(0),
 });
 
 const ItemResponseSchema = z.object({
-  itemNetwork: z.string(),
-  itemDomain: z.string(),
-  itemType: z.string(),
-  itemId: z.string().uuid(),
-  itemInstanceUrl: z.string().nullable(),
-  itemSchemaUrl: z.string().nullable(),
-  itemState: z.record(z.string(), z.any()).nullable(),
-  itemLatitude: z.number().nullable(),
-  itemLongitude: z.number().nullable(),
-  createdBy: z.string().uuid(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  item_network: z.string(),
+  item_domain: z.string(),
+  item_type: z.string(),
+  item_id: z.string().uuid(),
+  item_instance_url: z.string(),
+  item_schema_url: z.string(),
+  item_state: z.record(z.string(), z.any()),
+  item_latitude: z.number().nullable(),
+  item_longitude: z.number().nullable(),
+  created_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 const FetchItemsResponseSchema = z.object({
@@ -59,7 +59,7 @@ export const fetchItems: FastifyPluginAsyncZod = async (fastify) => {
 };
 
 const fetchItemsHandler = async (request: FetchItemsRequest, reply: FastifyReply) => {
-  const { phoneNumber, itemNetwork, itemDomain, itemType, limit, offset } = request.query;
+  const { phoneNumber, item_network, item_domain, item_type, limit, offset } = request.query;
 
   try {
     const normalizedPhone = normalizeIndianPhone(phoneNumber, 'phoneNumber');
@@ -84,61 +84,54 @@ const fetchItemsHandler = async (request: FetchItemsRequest, reply: FastifyReply
       });
     }
 
-    const filters = [eq(dpgItems.createdBy, user.id)];
+    const conditions = [eq(dpgItems.created_by, user.id)];
 
-    if (itemNetwork) {
-      filters.push(eq(dpgItems.itemNetwork, itemNetwork) as any);
+    if (item_network) {
+      conditions.push(eq(dpgItems.item_network, item_network));
     }
-    if (itemDomain) {
-      filters.push(eq(dpgItems.itemDomain, itemDomain) as any);
+    if (item_domain) {
+      conditions.push(eq(dpgItems.item_domain, item_domain));
     }
-    if (itemType) {
-      filters.push(eq(dpgItems.itemType, itemType) as any);
+    if (item_type) {
+      conditions.push(eq(dpgItems.item_type, item_type));
     }
 
     const items = await dpgDb
       .select()
       .from(dpgItems)
-      .where(filters.length > 1 ? and(...filters) : filters[0])
+      .where(and(...conditions))
       .limit(limit)
       .offset(offset);
 
-    const [{ count }] = await dpgDb
-      .select({ count: dpgItems.itemId })
+    const [totalResult] = await dpgDb
+      .select({ total: count() })
       .from(dpgItems)
-      .where(filters.length > 1 ? and(...filters) : filters[0]);
+      .where(and(...conditions));
 
     return reply.code(200).send({
       items: items.map((item) => ({
-        itemNetwork: item.itemNetwork,
-        itemDomain: item.itemDomain,
-        itemType: item.itemType,
-        itemId: item.itemId,
-        itemInstanceUrl: item.itemInstanceUrl,
-        itemSchemaUrl: item.itemSchemaUrl,
-        itemState: item.itemState,
-        itemLatitude: item.itemLatitude,
-        itemLongitude: item.itemLongitude,
-        createdBy: item.createdBy,
-        createdAt: item.createdAt.toISOString(),
-        updatedAt: item.updatedAt.toISOString(),
+        item_network: item.item_network,
+        item_domain: item.item_domain,
+        item_type: item.item_type,
+        item_id: item.item_id,
+        item_instance_url: item.item_instance_url,
+        item_schema_url: item.item_schema_url,
+        item_state: item.item_state,
+        item_latitude: item.item_latitude,
+        item_longitude: item.item_longitude,
+        created_by: item.created_by,
+        created_at: item.created_at.toISOString(),
+        updated_at: item.updated_at.toISOString(),
       })),
-      total: Number(count),
+      total: totalResult?.total || 0,
       limit,
       offset,
     });
   } catch (err) {
-    request.log.error({ err, phoneNumber, itemNetwork, itemDomain, itemType }, 'Failed to fetch items from DPG');
+    request.log.error({ err, phoneNumber, item_network, item_domain, item_type }, 'Failed to fetch items from DPG');
     return reply.code(500).send({
       error: 'INTERNAL_SERVER_ERROR',
       message: 'Failed to fetch items',
     });
   }
 };
-
-function and(...conditions: any[]) {
-  return conditions.reduce((acc, cond) => {
-    if (!acc) return cond;
-    return { and: [acc, cond] };
-  }, null);
-}

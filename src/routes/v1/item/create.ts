@@ -7,30 +7,31 @@ import { dpgDb } from '../../../db/dpg_client';
 import { dpgUsers, dpgItems } from '../../../db/dpg_schema';
 import { authenticate } from '../../../middleware/authenticate';
 import { normalizeIndianPhone } from '../../../utils/phone';
+import { config } from '../../../config';
 
 const CreateItemBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
-  itemNetwork: z.string().min(1, 'item_network is required'),
-  itemDomain: z.string().min(1, 'item_domain is required'),
-  itemType: z.string().min(1, 'item_type is required'),
-  itemState: z.record(z.string(), z.any()).optional(),
-  itemLatitude: z.number().optional(),
-  itemLongitude: z.number().optional(),
+  item_network: z.string().min(1, 'item_network is required'),
+  item_domain: z.string().min(1, 'item_domain is required'),
+  item_type: z.string().min(1, 'item_type is required'),
+  item_state: z.record(z.string(), z.any()).optional(),
+  item_latitude: z.number().optional(),
+  item_longitude: z.number().optional(),
 });
 
 const CreateItemResponseSchema = z.object({
-  itemNetwork: z.string(),
-  itemDomain: z.string(),
-  itemType: z.string(),
-  itemId: z.string().uuid(),
-  itemInstanceUrl: z.string().nullable(),
-  itemSchemaUrl: z.string().nullable(),
-  itemState: z.record(z.string(), z.any()).nullable(),
-  itemLatitude: z.number().nullable(),
-  itemLongitude: z.number().nullable(),
-  createdBy: z.string().uuid(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  item_network: z.string(),
+  item_domain: z.string(),
+  item_type: z.string(),
+  item_id: z.string().uuid(),
+  item_instance_url: z.string().nullable(),
+  item_schema_url: z.string().nullable(),
+  item_state: z.record(z.string(), z.any()).nullable(),
+  item_latitude: z.number().nullable(),
+  item_longitude: z.number().nullable(),
+  created_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 type CreateItemRequest = FastifyRequest<{
@@ -54,7 +55,7 @@ export const createItem: FastifyPluginAsyncZod = async (fastify) => {
 };
 
 const createItemHandler = async (request: CreateItemRequest, reply: FastifyReply) => {
-  const { phoneNumber, itemNetwork, itemDomain, itemType, itemState, itemLatitude, itemLongitude } = request.body;
+  const { phoneNumber, item_network, item_domain, item_type, item_state, item_latitude, item_longitude } = request.body;
 
   try {
     const normalizedPhone = normalizeIndianPhone(phoneNumber, 'phoneNumber');
@@ -79,6 +80,7 @@ const createItemHandler = async (request: CreateItemRequest, reply: FastifyReply
           name: `User ${normalizedPhone.slice(-4)}`,
           phoneNumber: normalizedPhone,
           phoneNumberVerified: true,
+          emailVerified: true,
           createdAt: now,
           updatedAt: now,
           role: 'user',
@@ -90,34 +92,44 @@ const createItemHandler = async (request: CreateItemRequest, reply: FastifyReply
     const [newItem] = await dpgDb
       .insert(dpgItems)
       .values({
-        itemNetwork,
-        itemDomain,
-        itemType,
-        itemState: itemState || {},
-        itemLatitude: itemLatitude || null,
-        itemLongitude: itemLongitude || null,
-        createdBy: user.id,
-        createdAt: now,
-        updatedAt: now,
+        item_network,
+        item_domain,
+        item_type,
+        item_instance_url: `${config.app.url}/items/${item_network}/${item_domain}/${item_type}`,
+        item_schema_url: `${config.app.url}/schema/${item_network}/${item_domain}/${item_type}`,
+        item_state: item_state || {},
+        item_latitude: item_latitude || null,
+        item_longitude: item_longitude || null,
+        created_by: user.id,
+        created_at: now,
+        updated_at: now,
       })
       .returning();
 
     return reply.code(201).send({
-      itemNetwork: newItem.itemNetwork,
-      itemDomain: newItem.itemDomain,
-      itemType: newItem.itemType,
-      itemId: newItem.itemId,
-      itemInstanceUrl: newItem.itemInstanceUrl,
-      itemSchemaUrl: newItem.itemSchemaUrl,
-      itemState: newItem.itemState,
-      itemLatitude: newItem.itemLatitude,
-      itemLongitude: newItem.itemLongitude,
-      createdBy: newItem.createdBy,
-      createdAt: newItem.createdAt.toISOString(),
-      updatedAt: newItem.updatedAt.toISOString(),
+      item_network: newItem.item_network,
+      item_domain: newItem.item_domain,
+      item_type: newItem.item_type,
+      item_id: newItem.item_id,
+      item_instance_url: newItem.item_instance_url,
+      item_schema_url: newItem.item_schema_url,
+      item_state: newItem.item_state,
+      item_latitude: newItem.item_latitude,
+      item_longitude: newItem.item_longitude,
+      created_by: newItem.created_by,
+      created_at: newItem.created_at.toISOString(),
+      updated_at: newItem.updated_at.toISOString(),
     });
-  } catch (err) {
-    request.log.error({ err, phoneNumber, itemNetwork, itemDomain, itemType }, 'Failed to create item in DPG');
+  } catch (err: any) {
+    request.log.error({ err, phoneNumber, item_network, item_domain, item_type }, 'Failed to create item in DPG');
+    
+    if (err?.code === '23514' || err?.message?.includes('no partition')) {
+      return reply.code(400).send({
+        error: 'PARTITION_NOT_FOUND',
+        message: `No partition exists for item_type '${item_type}'. Please contact DPG admin to create partition for this type.`,
+      });
+    }
+    
     return reply.code(500).send({
       error: 'INTERNAL_SERVER_ERROR',
       message: 'Failed to create item',

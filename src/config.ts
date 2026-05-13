@@ -16,6 +16,7 @@ const ConfigSchema = z.object({
     host: z.string(),
     port: z.coerce.number(),
     nodeEnv: z.enum(['development', 'production']).default('development'),
+    url: z.string().default('http://localhost:3001'),
   }),
   auth: z.object({
     apiKeyPrefix: z.string().default('dpg_vai'),
@@ -39,6 +40,7 @@ export const config = ConfigSchema.parse({
     host: process.env.APP_HOST!,
     port: process.env.APP_PORT!,
     nodeEnv: process.env.NODE_ENV || 'development',
+    url: process.env.APP_URL || `http://localhost:${process.env.APP_PORT || 3001}`,
   },
   auth: {
     apiKeyPrefix: process.env.API_KEY_PREFIX || 'dpg_vai',

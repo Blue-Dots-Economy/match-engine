@@ -8,29 +8,29 @@ import { authenticate } from '../../../middleware/authenticate';
 import { normalizeIndianPhone } from '../../../utils/phone';
 
 const UpdateItemParamsSchema = z.object({
-  itemId: z.string().uuid('Invalid item ID format'),
+  item_id: z.string().uuid('Invalid item ID format'),
 });
 
 const UpdateItemBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
-  itemState: z.record(z.string(), z.any()).optional(),
-  itemLatitude: z.number().optional(),
-  itemLongitude: z.number().optional(),
+  item_state: z.record(z.string(), z.any()).optional(),
+  item_latitude: z.number().optional(),
+  item_longitude: z.number().optional(),
 });
 
 const UpdateItemResponseSchema = z.object({
-  itemNetwork: z.string(),
-  itemDomain: z.string(),
-  itemType: z.string(),
-  itemId: z.string().uuid(),
-  itemInstanceUrl: z.string().nullable(),
-  itemSchemaUrl: z.string().nullable(),
-  itemState: z.record(z.string(), z.any()).nullable(),
-  itemLatitude: z.number().nullable(),
-  itemLongitude: z.number().nullable(),
-  createdBy: z.string().uuid(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  item_network: z.string(),
+  item_domain: z.string(),
+  item_type: z.string(),
+  item_id: z.string().uuid(),
+  item_instance_url: z.string(),
+  item_schema_url: z.string(),
+  item_state: z.record(z.string(), z.any()),
+  item_latitude: z.number().nullable(),
+  item_longitude: z.number().nullable(),
+  created_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 type UpdateItemRequest = FastifyRequest<{
@@ -40,7 +40,7 @@ type UpdateItemRequest = FastifyRequest<{
 
 export const updateItem: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
-    url: '/:itemId',
+    url: '/:item_id',
     method: 'PATCH',
     preHandler: authenticate,
     schema: {
@@ -56,8 +56,8 @@ export const updateItem: FastifyPluginAsyncZod = async (fastify) => {
 };
 
 const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply) => {
-  const { itemId } = request.params;
-  const { phoneNumber, itemState, itemLatitude, itemLongitude } = request.body;
+  const { item_id } = request.params;
+  const { phoneNumber, item_state, item_latitude, item_longitude } = request.body;
 
   try {
     const normalizedPhone = normalizeIndianPhone(phoneNumber, 'phoneNumber');
@@ -83,7 +83,7 @@ const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply
     const [existingItem] = await dpgDb
       .select()
       .from(dpgItems)
-      .where(eq(dpgItems.itemId, itemId))
+      .where(eq(dpgItems.item_id, item_id))
       .limit(1);
 
     if (!existingItem) {
@@ -93,7 +93,7 @@ const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply
       });
     }
 
-    if (existingItem.createdBy !== user.id) {
+    if (existingItem.created_by !== user.id) {
       return reply.code(403).send({
         error: 'FORBIDDEN',
         message: 'You do not have permission to update this item',
@@ -101,41 +101,41 @@ const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply
     }
 
     const updateData: Record<string, any> = {
-      updatedAt: new Date(),
+      updated_at: new Date(),
     };
 
-    if (itemState !== undefined) {
-      updateData.itemState = itemState;
+    if (item_state !== undefined) {
+      updateData.item_state = item_state;
     }
-    if (itemLatitude !== undefined) {
-      updateData.itemLatitude = itemLatitude;
+    if (item_latitude !== undefined) {
+      updateData.item_latitude = item_latitude;
     }
-    if (itemLongitude !== undefined) {
-      updateData.itemLongitude = itemLongitude;
+    if (item_longitude !== undefined) {
+      updateData.item_longitude = item_longitude;
     }
 
     const [updatedItem] = await dpgDb
       .update(dpgItems)
       .set(updateData)
-      .where(eq(dpgItems.itemId, itemId))
+      .where(eq(dpgItems.item_id, item_id))
       .returning();
 
     return reply.code(200).send({
-      itemNetwork: updatedItem.itemNetwork,
-      itemDomain: updatedItem.itemDomain,
-      itemType: updatedItem.itemType,
-      itemId: updatedItem.itemId,
-      itemInstanceUrl: updatedItem.itemInstanceUrl,
-      itemSchemaUrl: updatedItem.itemSchemaUrl,
-      itemState: updatedItem.itemState,
-      itemLatitude: updatedItem.itemLatitude,
-      itemLongitude: updatedItem.itemLongitude,
-      createdBy: updatedItem.createdBy,
-      createdAt: updatedItem.createdAt.toISOString(),
-      updatedAt: updatedItem.updatedAt.toISOString(),
+      item_network: updatedItem.item_network,
+      item_domain: updatedItem.item_domain,
+      item_type: updatedItem.item_type,
+      item_id: updatedItem.item_id,
+      item_instance_url: updatedItem.item_instance_url,
+      item_schema_url: updatedItem.item_schema_url,
+      item_state: updatedItem.item_state,
+      item_latitude: updatedItem.item_latitude,
+      item_longitude: updatedItem.item_longitude,
+      created_by: updatedItem.created_by,
+      created_at: updatedItem.created_at.toISOString(),
+      updated_at: updatedItem.updated_at.toISOString(),
     });
   } catch (err) {
-    request.log.error({ err, itemId, phoneNumber }, 'Failed to update item in DPG');
+    request.log.error({ err, item_id, phoneNumber }, 'Failed to update item in DPG');
     return reply.code(500).send({
       error: 'INTERNAL_SERVER_ERROR',
       message: 'Failed to update item',
