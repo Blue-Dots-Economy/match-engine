@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, uuid, jsonb, doublePrecision } from 'drizzle-orm/pg-core';
 
 export const dpgUsers = pgTable('user', {
   id: uuid('id').primaryKey(),
@@ -21,3 +21,21 @@ export const dpgUsers = pgTable('user', {
 
 export type DpgUser = typeof dpgUsers.$inferSelect;
 export type NewDpgUser = typeof dpgUsers.$inferInsert;
+
+export const dpgItems = pgTable('items', {
+  itemNetwork: text('item_network').notNull(),
+  itemDomain: text('item_domain').notNull(),
+  itemType: text('item_type').notNull(),
+  itemId: uuid('item_id').defaultRandom(),
+  itemInstanceUrl: text('item_instance_url'),
+  itemSchemaUrl: text('item_schema_url'),
+  itemState: jsonb('item_state'),
+  itemLatitude: doublePrecision('item_latitude'),
+  itemLongitude: doublePrecision('item_longitude'),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type DpgItem = typeof dpgItems.$inferSelect;
+export type NewDpgItem = typeof dpgItems.$inferInsert;

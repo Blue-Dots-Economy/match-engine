@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { eq, and, or, isNull } from 'drizzle-orm';
+import { eq, and, or, isNull, sql } from 'drizzle-orm';
 import { agentDb } from '../db';
 import { apiKeys, agents } from '../db/agent_schema';
 import { verifyApiKey } from '../utils/crypto';
@@ -32,7 +32,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
     .where(
       and(
         eq(apiKeys.isActive, true),
-        or(isNull(apiKeys.expiresAt), apiKeys.expiresAt as any > new Date())
+        or(isNull(apiKeys.expiresAt), sql`${apiKeys.expiresAt} > ${new Date()}`)
       )
     );
 
