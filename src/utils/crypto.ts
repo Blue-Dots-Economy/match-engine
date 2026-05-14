@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { customAlphabet } from 'nanoid';
 import { config } from '../config';
 

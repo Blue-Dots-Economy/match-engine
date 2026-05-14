@@ -17,7 +17,7 @@
     "@fastify/cors": "10.1.0",
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.6",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.29.3",
     "drizzle-zod": "^0.5.1",
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20.10.6",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.20.14",

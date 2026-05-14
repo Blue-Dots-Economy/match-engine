@@ -17,6 +17,34 @@ pnpm dev
 
 Server runs at `http://localhost:3001`
 
+## Running with Docker
+
+Build and start all services (app + PostgreSQL):
+
+```bash
+docker compose up --build -d
+```
+
+Stop all services:
+
+```bash
+docker compose down
+```
+
+Stop and remove volumes (clean slate):
+
+```bash
+docker compose down -v
+```
+
+View logs:
+
+```bash
+docker compose logs -f app
+```
+
+Server runs at `http://localhost:3001`
+
 ## Environment Variables
 
 Copy `.env.example` to `.env` and configure:
