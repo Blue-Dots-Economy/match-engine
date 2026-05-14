@@ -97,6 +97,7 @@ APP_PORT=3001
 ### Actions
 - `POST /api/v1/action/create` - Perform action between items
 - `POST /api/v1/action/fetch` - Fetch actions by phone
+- `POST /api/v1/action/update-status` - Update action status (mirrors event to target/source instances)
 
 ### Events
 - `POST /api/v1/event/store` - Store action event
