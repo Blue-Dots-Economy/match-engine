@@ -37,6 +37,12 @@ app.withTypeProvider<ZodTypeProvider>().route({
   }),
 });
 
+app.withTypeProvider<ZodTypeProvider>().route({
+  method: 'GET',
+  url: '/ready',
+  handler: () => ({ status: 'ready' }),
+});
+
 await app
   .listen({
     host: config.app.host,

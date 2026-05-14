@@ -8,10 +8,11 @@ API gateway for external agents to interact with DPG (Distributed Personal Graph
 # Install dependencies
 pnpm install
 
-# Start PostgreSQL via Docker
-docker compose up -d
+# Start with Docker (app + PostgreSQL)
+docker compose up --build -d
 
-# Start development server
+# Or start locally with PostgreSQL via Docker
+docker compose up -d postgres
 pnpm dev
 ```
 
@@ -40,35 +41,41 @@ docker compose down -v
 View logs:
 
 ```bash
-docker compose logs -f app
+docker compose logs -f dpg-agent-interface
 ```
 
 Server runs at `http://localhost:3001`
+Swagger docs at `http://localhost:3001/docs`
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and configure:
+Create a `.env` file in the project root (copy from `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Configure the following variables:
 
 ```env
 # PostgreSQL
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
-POSTGRES_DB=agent_interface
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
+POSTGRES_DB=agent_interface
+POSTGRES_PORT=5433
 
 # DPG Database (separate)
 DPG_DATABASE_URL=postgresql://user:password@host:port/dbname
 
 # DPG Instance
-DPG_INSTANCE_URL=http://localhost:2742
+DPG_INSTANCE_URL=https://ubi-backend.onest.dhiway.net
 SCHEMA_BASE_URL=https://raw.githubusercontent.com/dhiway/dpg-monorepo/refs/heads/main/examples/schemas
 
 # App
-APP_HOST=0.0.0.0
 APP_PORT=3001
-NODE_ENV=development
 ```
+
+**Note:** The `docker-compose.yaml` uses `env_file: .env`. Ensure a `.env` file exists before running `docker compose up`.
 
 ## API Endpoints
 

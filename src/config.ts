@@ -31,7 +31,7 @@ const ConfigSchema = z.object({
 
 export const config = ConfigSchema.parse({
   postgres: {
-    host: process.env.POSTGRES_HOST!,
+    host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT!, 10),
     db: process.env.POSTGRES_DB!,
     user: process.env.POSTGRES_USER!,

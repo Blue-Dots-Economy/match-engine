@@ -1,15 +1,37 @@
-version: '3.8'
-
 services:
+  dpg-agent-interface:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dpg-agent-interface
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3001/ready').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
-    container_name: agent_interface_db
+    container_name: dpg-agent-interface-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,30 +39,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: dpg_agent_interface
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DPG_DATABASE_URL: ${DPG_DATABASE_URL}
-      DPG_INSTANCE_URL: ${DPG_INSTANCE_URL}
-      SCHEMA_BASE_URL: ${SCHEMA_BASE_URL}
-      APP_HOST: 0.0.0.0
-      APP_PORT: 3001
-      NODE_ENV: ${NODE_ENV:-development}
-    ports:
-      - "${APP_PORT:-3001}:3001"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
 
 volumes:
   postgres_data:
