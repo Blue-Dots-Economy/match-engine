@@ -15,6 +15,7 @@ RUN pnpm install --frozen-lockfile
 FROM deps AS build
 
 COPY tsconfig.json ./
+COPY drizzle.config.ts ./
 COPY src ./src
 RUN pnpm build
 
@@ -27,7 +28,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./package.json
+COPY drizzle.config.ts ./drizzle.config.ts
+COPY tsconfig.json ./tsconfig.json
+COPY src ./src
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 3001
 
-CMD ["node", "dist/server.js"]
+ENTRYPOINT ["/entrypoint.sh"]
