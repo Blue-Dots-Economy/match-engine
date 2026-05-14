@@ -91,6 +91,9 @@ APP_PORT=3001
 - `GET /api/v1/item/fetch` - Fetch items by phone
 - `PATCH /api/v1/item/:itemId` - Update item
 
+### Network (Public)
+- `GET /api/v1/network/item/fetch-all` - Fetch all items across the DPG network (aggregated from all instances)
+
 ### Actions
 - `POST /api/v1/action/create` - Perform action between items
 - `GET /api/v1/action/fetch` - Fetch actions by phone
