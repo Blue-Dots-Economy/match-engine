@@ -4,8 +4,8 @@ import { getAgentDbUrl } from './src/config';
 export default defineConfig({
   schema: './src/db/agent_schema.ts',
   out: './drizzle',
+  driver: 'pg',
   dbCredentials: {
-    url: getAgentDbUrl(),
-    driver: 'pg',
+    connectionString: getAgentDbUrl(),
   },
 });
