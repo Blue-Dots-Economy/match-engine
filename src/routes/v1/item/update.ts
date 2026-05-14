@@ -8,7 +8,7 @@ import { authenticate } from '../../../middleware/authenticate';
 import { normalizeIndianPhone } from '../../../utils/phone';
 
 const UpdateItemParamsSchema = z.object({
-  item_id: z.string().uuid('Invalid item ID format'),
+  itemId: z.string().uuid('Invalid item ID format'),
 });
 
 const UpdateItemBodySchema = z.object({
@@ -40,7 +40,7 @@ type UpdateItemRequest = FastifyRequest<{
 
 export const updateItem: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
-    url: '/:item_id',
+    url: '/:itemId',
     method: 'PATCH',
     preHandler: authenticate,
     schema: {
@@ -56,7 +56,7 @@ export const updateItem: FastifyPluginAsyncZod = async (fastify) => {
 };
 
 const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply) => {
-  const { item_id } = request.params;
+  const { itemId } = request.params;
   const { phoneNumber, item_state, item_latitude, item_longitude } = request.body;
 
   try {
@@ -83,7 +83,7 @@ const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply
     const [existingItem] = await dpgDb
       .select()
       .from(dpgItems)
-      .where(eq(dpgItems.item_id, item_id))
+      .where(eq(dpgItems.item_id, itemId))
       .limit(1);
 
     if (!existingItem) {
@@ -117,7 +117,7 @@ const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply
     const [updatedItem] = await dpgDb
       .update(dpgItems)
       .set(updateData)
-      .where(eq(dpgItems.item_id, item_id))
+      .where(eq(dpgItems.item_id, itemId))
       .returning();
 
     return reply.code(200).send({
@@ -135,7 +135,7 @@ const updateItemHandler = async (request: UpdateItemRequest, reply: FastifyReply
       updated_at: updatedItem.updated_at.toISOString(),
     });
   } catch (err) {
-    request.log.error({ err, item_id, phoneNumber }, 'Failed to update item in DPG');
+    request.log.error({ err, itemId, phoneNumber }, 'Failed to update item in DPG');
     return reply.code(500).send({
       error: 'INTERNAL_SERVER_ERROR',
       message: 'Failed to update item',
