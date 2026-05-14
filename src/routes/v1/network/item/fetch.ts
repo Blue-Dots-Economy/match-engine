@@ -14,9 +14,9 @@ const FetchNetworkItemsQuerySchema = z.object({
   item_latitude: z.coerce.number().optional(),
   item_longitude: z.coerce.number().optional(),
   radius_meters: z.coerce.number().positive().optional(),
-  limit: z.coerce.number().min(1).max(100).default(20),
-  offset: z.coerce.number().min(0).default(0),
-  cache_ttl_seconds: z.coerce.number().int().positive().optional(),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
+  cache_ttl_seconds: z.number().int().positive().optional(),
 });
 
 const ItemResponseSchema = z.object({
@@ -44,16 +44,16 @@ const FetchNetworkItemsResponseSchema = z.object({
 });
 
 type FetchNetworkItemsRequest = FastifyRequest<{
-  Querystring: z.infer<typeof FetchNetworkItemsQuerySchema>;
+  Body: z.infer<typeof FetchNetworkItemsQuerySchema>;
 }>;
 
 export const fetchNetworkItems: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
     url: '/fetch-all',
-    method: 'GET',
+    method: 'POST',
     schema: {
       tags: ['network'],
-      querystring: FetchNetworkItemsQuerySchema,
+      body: FetchNetworkItemsQuerySchema,
       response: {
         200: FetchNetworkItemsResponseSchema,
       },
@@ -66,13 +66,13 @@ const fetchNetworkItemsHandler = async (
   request: FetchNetworkItemsRequest,
   reply: FastifyReply
 ) => {
-  const query = request.query;
+  const body = request.body;
 
   if (
-    (query.item_latitude !== undefined || query.item_longitude !== undefined) &&
-    (query.item_latitude === undefined ||
-      query.item_longitude === undefined ||
-      query.radius_meters === undefined)
+    (body.item_latitude !== undefined || body.item_longitude !== undefined) &&
+    (body.item_latitude === undefined ||
+      body.item_longitude === undefined ||
+      body.radius_meters === undefined)
   ) {
     return reply.code(400).send({
       error: 'VALIDATION_ERROR',
@@ -84,31 +84,31 @@ const fetchNetworkItemsHandler = async (
   try {
     const url = new URL(`${config.dpg.instanceUrl}/api/v1/network/item/fetch`);
     const searchParams = new URLSearchParams();
-    searchParams.set('item_network', query.item_network);
-    searchParams.set('item_domain', query.item_domain);
+    searchParams.set('item_network', body.item_network);
+    searchParams.set('item_domain', body.item_domain);
 
-    if (query.item_type) searchParams.set('item_type', query.item_type);
-    if (query.item_id) searchParams.set('item_id', query.item_id);
-    if (query.item_instance_url)
-      searchParams.set('item_instance_url', query.item_instance_url);
-    if (query.item_schema_url)
-      searchParams.set('item_schema_url', query.item_schema_url);
-    if (query.item_latitude !== undefined)
+    if (body.item_type) searchParams.set('item_type', body.item_type);
+    if (body.item_id) searchParams.set('item_id', body.item_id);
+    if (body.item_instance_url)
+      searchParams.set('item_instance_url', body.item_instance_url);
+    if (body.item_schema_url)
+      searchParams.set('item_schema_url', body.item_schema_url);
+    if (body.item_latitude !== undefined)
       searchParams.set(
         'item_latitude',
-        String(query.item_latitude)
+        String(body.item_latitude)
       );
-    if (query.item_longitude !== undefined)
+    if (body.item_longitude !== undefined)
       searchParams.set(
         'item_longitude',
-        String(query.item_longitude)
+        String(body.item_longitude)
       );
-    if (query.radius_meters !== undefined)
-      searchParams.set('radius_meters', String(query.radius_meters));
-    searchParams.set('limit', String(query.limit));
-    searchParams.set('offset', String(query.offset));
-    if (query.cache_ttl_seconds !== undefined)
-      searchParams.set('cache_ttl_seconds', String(query.cache_ttl_seconds));
+    if (body.radius_meters !== undefined)
+      searchParams.set('radius_meters', String(body.radius_meters));
+    searchParams.set('limit', String(body.limit));
+    searchParams.set('offset', String(body.offset));
+    if (body.cache_ttl_seconds !== undefined)
+      searchParams.set('cache_ttl_seconds', String(body.cache_ttl_seconds));
 
     url.search = searchParams.toString();
 
@@ -132,7 +132,7 @@ const fetchNetworkItemsHandler = async (
     return reply.code(200).send(data);
   } catch (err: any) {
     request.log.error(
-      { err, item_network: query.item_network, item_domain: query.item_domain },
+      { err, item_network: body.item_network, item_domain: body.item_domain },
       'Failed to fetch items from DPG network'
     );
 

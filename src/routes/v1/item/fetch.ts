@@ -39,17 +39,17 @@ const FetchItemsResponseSchema = z.object({
 });
 
 type FetchItemsRequest = FastifyRequest<{
-  Querystring: z.infer<typeof FetchItemsQuerySchema>;
+  Body: z.infer<typeof FetchItemsQuerySchema>;
 }>;
 
 export const fetchItems: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
     url: '/fetch',
-    method: 'GET',
+    method: 'POST',
     preHandler: authenticate,
     schema: {
       tags: ['item'],
-      querystring: FetchItemsQuerySchema,
+      body: FetchItemsQuerySchema,
       response: {
         200: FetchItemsResponseSchema,
       },
@@ -59,7 +59,7 @@ export const fetchItems: FastifyPluginAsyncZod = async (fastify) => {
 };
 
 const fetchItemsHandler = async (request: FetchItemsRequest, reply: FastifyReply) => {
-  const { phoneNumber, item_network, item_domain, item_type, limit, offset } = request.query;
+  const { phoneNumber, item_network, item_domain, item_type, limit, offset } = request.body;
 
   try {
     const normalizedPhone = normalizeIndianPhone(phoneNumber, 'phoneNumber');
