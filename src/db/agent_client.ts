@@ -4,11 +4,11 @@ import { config } from '../config';
 import * as schema from './agent_schema';
 
 const pool = new Pool({
-  host: config.agentDb.host,
-  port: config.agentDb.port,
-  database: config.agentDb.name,
-  user: config.agentDb.user,
-  password: config.agentDb.password,
+  host: config.postgres.host,
+  port: config.postgres.port,
+  database: config.postgres.db,
+  user: config.postgres.user,
+  password: config.postgres.password,
 });
 
 export const agentDb = drizzle(pool, { schema });

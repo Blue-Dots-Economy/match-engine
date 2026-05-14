@@ -2,10 +2,10 @@ import z from 'zod';
 import 'dotenv/config';
 
 const ConfigSchema = z.object({
-  agentDb: z.object({
+  postgres: z.object({
     host: z.string(),
     port: z.coerce.number(),
-    name: z.string(),
+    db: z.string(),
     user: z.string(),
     password: z.string(),
   }),
@@ -30,12 +30,12 @@ const ConfigSchema = z.object({
 });
 
 export const config = ConfigSchema.parse({
-  agentDb: {
-    host: process.env.AGENT_DB_HOST!,
-    port: process.env.AGENT_DB_PORT!,
-    name: process.env.AGENT_DB_NAME!,
-    user: process.env.AGENT_DB_USER!,
-    password: process.env.AGENT_DB_PASSWORD!,
+  postgres: {
+    host: process.env.POSTGRES_HOST!,
+    port: parseInt(process.env.POSTGRES_PORT!, 10),
+    db: process.env.POSTGRES_DB!,
+    user: process.env.POSTGRES_USER!,
+    password: process.env.POSTGRES_PASSWORD!,
   },
   dpgDb: {
     url: process.env.DPG_DATABASE_URL!,
@@ -46,7 +46,7 @@ export const config = ConfigSchema.parse({
   },
   app: {
     host: process.env.APP_HOST!,
-    port: process.env.APP_PORT!,
+    port: parseInt(process.env.APP_PORT!, 10),
     nodeEnv: process.env.NODE_ENV || 'development',
     url: process.env.APP_URL || `http://localhost:${process.env.APP_PORT || 3001}`,
   },
@@ -58,8 +58,8 @@ export const config = ConfigSchema.parse({
 });
 
 export const getAgentDbUrl = () => {
-  const { host, port, name, user, password } = config.agentDb;
-  return `postgresql://${user}:${password}@${host}:${port}/${name}`;
+  const { host, port, db, user, password } = config.postgres;
+  return `postgresql://${user}:${password}@${host}:${port}/${db}`;
 };
 
 export const getDpgDbUrl = () => config.dpgDb.url;
