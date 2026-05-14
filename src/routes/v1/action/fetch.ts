@@ -7,14 +7,14 @@ import { dpgUsers, dpgItemActions } from '../../../db/dpg_schema';
 import { authenticate } from '../../../middleware/authenticate';
 import { normalizeIndianPhone } from '../../../utils/phone';
 
-const FetchActionsQuerySchema = z.object({
+const FetchActionsBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
   action_name: z.string().optional(),
   action_id: z.string().uuid().optional(),
   action_status: z.string().optional(),
   item_id: z.string().uuid().optional(),
-  limit: z.coerce.number().min(1).max(100).default(20),
-  offset: z.coerce.number().min(0).default(0),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
 });
 
 const ActionResponseSchema = z.object({
@@ -48,17 +48,17 @@ const FetchActionsResponseSchema = z.object({
 });
 
 type FetchActionsRequest = FastifyRequest<{
-  Querystring: z.infer<typeof FetchActionsQuerySchema>;
+  Body: z.infer<typeof FetchActionsBodySchema>;
 }>;
 
 export const fetchActions: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
     url: '/fetch',
-    method: 'GET',
+    method: 'POST',
     preHandler: authenticate,
     schema: {
       tags: ['action'],
-      querystring: FetchActionsQuerySchema,
+      body: FetchActionsBodySchema,
       response: {
         200: FetchActionsResponseSchema,
       },
@@ -79,7 +79,7 @@ const fetchActionsHandler = async (
     item_id,
     limit,
     offset,
-  } = request.query;
+  } = request.body;
 
   try {
     const normalizedPhone = normalizeIndianPhone(phoneNumber, 'phoneNumber');

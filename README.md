@@ -96,11 +96,11 @@ APP_PORT=3001
 
 ### Actions
 - `POST /api/v1/action/create` - Perform action between items
-- `GET /api/v1/action/fetch` - Fetch actions by phone
+- `POST /api/v1/action/fetch` - Fetch actions by phone
 
 ### Events
 - `POST /api/v1/event/store` - Store action event
-- `GET /api/v1/event/fetch` - Fetch events by phone
+- `POST /api/v1/event/fetch` - Fetch events by phone
 
 ## Documentation
 

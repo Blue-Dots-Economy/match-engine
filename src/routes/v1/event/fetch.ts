@@ -7,15 +7,15 @@ import { dpgUsers, dpgActionEvents } from '../../../db/dpg_schema';
 import { authenticate } from '../../../middleware/authenticate';
 import { normalizeIndianPhone } from '../../../utils/phone';
 
-const FetchEventsQuerySchema = z.object({
+const FetchEventsBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
   action_name: z.string().optional(),
   action_id: z.string().uuid().optional(),
   action_status: z.string().optional(),
   item_id: z.string().uuid().optional(),
-  update_count: z.coerce.number().int().nonnegative().optional(),
-  limit: z.coerce.number().min(1).max(100).default(20),
-  offset: z.coerce.number().min(0).default(0),
+  update_count: z.number().int().nonnegative().optional(),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
 });
 
 const EventResponseSchema = z.object({
@@ -54,17 +54,17 @@ const FetchEventsResponseSchema = z.object({
 });
 
 type FetchEventsRequest = FastifyRequest<{
-  Querystring: z.infer<typeof FetchEventsQuerySchema>;
+  Body: z.infer<typeof FetchEventsBodySchema>;
 }>;
 
 export const fetchEvents: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
     url: '/fetch',
-    method: 'GET',
+    method: 'POST',
     preHandler: authenticate,
     schema: {
       tags: ['event'],
-      querystring: FetchEventsQuerySchema,
+      body: FetchEventsBodySchema,
       response: {
         200: FetchEventsResponseSchema,
       },
@@ -86,7 +86,7 @@ const fetchEventsHandler = async (
     update_count,
     limit,
     offset,
-  } = request.query;
+  } = request.body;
 
   try {
     const normalizedPhone = normalizeIndianPhone(phoneNumber, 'phoneNumber');
