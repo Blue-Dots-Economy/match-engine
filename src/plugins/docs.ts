@@ -37,8 +37,8 @@ async function registerDocsPlugin(app: import('fastify').FastifyInstance) {
           description: 'Action management endpoints (API key required)',
         },
         {
-          name: 'event',
-          description: 'Event management endpoints (API key required)',
+          name: 'network',
+          description: 'Network item fetch endpoints (no auth required)',
         },
       ],
       components: {
