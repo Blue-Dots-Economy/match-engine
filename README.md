@@ -99,9 +99,8 @@ APP_PORT=3001
 - `POST /api/v1/action/fetch` - Fetch actions by phone
 - `POST /api/v1/action/update-status` - Update action status (mirrors event to target/source instances)
 
-### Events
-- `POST /api/v1/event/store` - Store action event
-- `POST /api/v1/event/fetch` - Fetch events by phone
+### Network (Public)
+- `POST /api/v1/network/item/fetch-all` - Fetch all items across the DPG network (aggregated from all instances)
 
 ## Documentation
 
