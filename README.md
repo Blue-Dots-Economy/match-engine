@@ -69,7 +69,7 @@ DPG_DATABASE_URL=postgresql://user:password@host:port/dbname
 
 # DPG Instance
 DPG_INSTANCE_URL=https://ubi-backend.onest.dhiway.net
-SCHEMA_BASE_URL=https://raw.githubusercontent.com/dhiway/dpg-monorepo/refs/heads/main/examples/schemas
+NETWORK_SCHEMA_URLS=onest_yellow_dot=https://raw.githubusercontent.com/dhiway/DPG-Networks/refs/heads/examples/yellow_dot/network.json
 
 # App
 APP_PORT=3001

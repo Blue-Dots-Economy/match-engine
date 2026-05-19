@@ -1,6 +1,24 @@
 import z from 'zod';
 import 'dotenv/config';
 
+const DEFAULT_NETWORK_SCHEMA_URLS = 'onest_yellow_dot=https://raw.githubusercontent.com/dhiway/DPG-Networks/refs/heads/examples/yellow_dot/network.json';
+
+function parseNetworkSchemaUrls(value: string): Record<string, string> {
+  return Object.fromEntries(
+    value.split(',').map((entry) => {
+      const [network, url] = entry.split('=').map((part) => part.trim());
+
+      if (!network || !url) {
+        throw new Error(
+          `Invalid NETWORK_SCHEMA_URLS entry "${entry}". Expected "network=url".`
+        );
+      }
+
+      return [network, url];
+    })
+  );
+}
+
 const ConfigSchema = z.object({
   postgres: z.object({
     host: z.string(),
@@ -14,7 +32,7 @@ const ConfigSchema = z.object({
   }),
   dpg: z.object({
     instanceUrl: z.string().url(),
-    schemaBaseUrl: z.string().url(),
+    networkSchemaUrls: z.record(z.string().url()),
   }),
   app: z.object({
     host: z.string(),
@@ -42,7 +60,9 @@ export const config = ConfigSchema.parse({
   },
   dpg: {
     instanceUrl: process.env.DPG_INSTANCE_URL || 'http://localhost:2742',
-    schemaBaseUrl: process.env.SCHEMA_BASE_URL || 'https://raw.githubusercontent.com/dhiway/dpg-monorepo/refs/heads/main/examples/schemas',
+    networkSchemaUrls: parseNetworkSchemaUrls(
+      process.env.NETWORK_SCHEMA_URLS || DEFAULT_NETWORK_SCHEMA_URLS
+    ),
   },
   app: {
     host: process.env.APP_HOST!,
@@ -73,5 +93,11 @@ export function buildItemSchemaUrl(
   itemDomain: string,
   itemType: string
 ): string {
-  return `${config.dpg.schemaBaseUrl}/${itemNetwork}/network.json#/item_schemas/${itemNetwork}/${itemDomain}/${itemType}`;
+  const networkSchemaUrl = config.dpg.networkSchemaUrls[itemNetwork];
+
+  if (!networkSchemaUrl) {
+    throw new Error(`No schema URL configured for network '${itemNetwork}'`);
+  }
+
+  return `${networkSchemaUrl}#/item_schemas/${itemNetwork}/${itemDomain}/${itemType}`;
 }
