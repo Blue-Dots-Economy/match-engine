@@ -114,6 +114,14 @@ const upsertUserHandler = async (request: UpsertUserRequest, reply: FastifyReply
       message: 'User created successfully',
     });
   } catch (err) {
+    if (err instanceof Error && err.message.toLowerCase().includes('phone number')) {
+      request.log.warn({ err, email, phoneNumber, name }, 'Invalid phone number in upsert user request');
+      return reply.code(400).send({
+        error: 'BAD_REQUEST',
+        message: err.message,
+      });
+    }
+
     request.log.error({ err, email, phoneNumber, name }, 'Failed to upsert user in DPG');
     return reply.code(500).send({
       error: 'INTERNAL_SERVER_ERROR',
