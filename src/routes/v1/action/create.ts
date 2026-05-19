@@ -18,7 +18,7 @@ const ActionItemRefSchema = z.object({
 
 const CreateActionBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
-  action_name: z.string().min(1, 'action_name is required'),
+  action_type: z.string().min(1, 'action_type is required'),
   source_item: ActionItemRefSchema,
   target_item: ActionItemRefSchema.extend({
     item_instance_url: z.string().url(),
@@ -27,7 +27,7 @@ const CreateActionBodySchema = z.object({
 });
 
 const CreateActionResponseSchema = z.object({
-  action_name: z.string(),
+  action_type: z.string(),
   action_id: z.string().uuid(),
   action_status: z.string(),
   update_count: z.number().int(),
@@ -85,7 +85,7 @@ const createActionHandler = async (
 ) => {
   const {
     phoneNumber,
-    action_name,
+    action_type,
     source_item,
     target_item,
     requirements_snapshot,
@@ -166,7 +166,8 @@ const createActionHandler = async (
     const [createdAction] = await dpgDb
       .insert(dpgItemActions)
       .values({
-        action_name,
+        action_type,
+        partition_network: target_item.item_network,
         action_status: actionStatus,
         update_count: 0,
         source_item_network: source_item.item_network,
@@ -200,7 +201,7 @@ const createActionHandler = async (
               'content-type': 'application/json',
             },
             body: JSON.stringify({
-              action_name,
+              action_type,
               source_item: {
                 item_network: source_item.item_network,
                 item_domain: source_item.item_domain,
@@ -236,7 +237,7 @@ const createActionHandler = async (
     }
 
     return reply.code(201).send({
-      action_name: createdAction.action_name,
+      action_type: createdAction.action_type,
       action_id: createdAction.action_id,
       action_status: createdAction.action_status,
       update_count: createdAction.update_count,
@@ -247,14 +248,14 @@ const createActionHandler = async (
     });
   } catch (err: any) {
     request.log.error(
-      { err, phoneNumber, action_name },
+      { err, phoneNumber, action_type },
       'Failed to create action in DPG'
     );
 
     if (err?.code === '23514' || err?.message?.includes('no partition')) {
       return reply.code(400).send({
         error: 'PARTITION_NOT_FOUND',
-        message: `No partition exists for action '${action_name}'. Please contact DPG admin to create partition for this action type.`,
+        message: `No partition exists for action '${action_type}'. Please contact DPG admin to create partition for this action type.`,
       });
     }
 

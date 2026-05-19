@@ -9,7 +9,7 @@ import { normalizeIndianPhone } from '../../../utils/phone';
 
 const FetchActionsBodySchema = z.object({
   phoneNumber: z.string().min(10, 'Phone number is required'),
-  action_name: z.string().optional(),
+  action_type: z.string().optional(),
   action_id: z.string().uuid().optional(),
   action_status: z.string().optional(),
   item_id: z.string().uuid().optional(),
@@ -18,7 +18,7 @@ const FetchActionsBodySchema = z.object({
 });
 
 const ActionResponseSchema = z.object({
-  action_name: z.string(),
+  action_type: z.string(),
   action_id: z.string().uuid(),
   action_status: z.string(),
   update_count: z.number().int(),
@@ -73,7 +73,7 @@ const fetchActionsHandler = async (
 ) => {
   const {
     phoneNumber,
-    action_name,
+    action_type,
     action_id,
     action_status,
     item_id,
@@ -111,8 +111,8 @@ const fetchActionsHandler = async (
       ),
     ];
 
-    if (action_name) {
-      conditions.push(eq(dpgItemActions.action_name, action_name));
+    if (action_type) {
+      conditions.push(eq(dpgItemActions.action_type, action_type));
     }
     if (action_id) {
       conditions.push(eq(dpgItemActions.action_id, action_id));
@@ -143,7 +143,7 @@ const fetchActionsHandler = async (
 
     return reply.code(200).send({
       actions: actions.map((action) => ({
-        action_name: action.action_name,
+        action_type: action.action_type,
         action_id: action.action_id,
         action_status: action.action_status,
         update_count: action.update_count,
@@ -170,7 +170,7 @@ const fetchActionsHandler = async (
     });
   } catch (err) {
     request.log.error(
-      { err, phoneNumber, action_name },
+      { err, phoneNumber, action_type },
       'Failed to fetch actions from DPG'
     );
     return reply.code(500).send({

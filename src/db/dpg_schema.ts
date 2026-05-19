@@ -48,7 +48,8 @@ export type DpgItem = typeof dpgItems.$inferSelect;
 export type NewDpgItem = typeof dpgItems.$inferInsert;
 
 export const dpgItemActions = pgTable('item_actions', {
-  action_name: text('action_name').notNull(),
+  action_type: text('action_type').notNull(),
+  partition_network: text('partition_network').notNull(),
   action_id: uuid('action_id').defaultRandom().notNull(),
   action_status: text('action_status').notNull(),
   update_count: integer('update_count').notNull().default(0),
@@ -81,7 +82,8 @@ export type DpgItemAction = typeof dpgItemActions.$inferSelect;
 export type NewDpgItemAction = typeof dpgItemActions.$inferInsert;
 
 export const dpgActionEvents = pgTable('action_events', {
-  action_name: text('action_name').notNull(),
+  action_type: text('action_type').notNull(),
+  partition_network: text('partition_network').notNull(),
   event_id: uuid('event_id').defaultRandom().notNull(),
   origin_instance_domain: text('origin_instance_domain').notNull(),
   action_id: uuid('action_id').notNull(),

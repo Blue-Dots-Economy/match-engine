@@ -15,7 +15,7 @@ const UpdateStatusBodySchema = z.object({
 
 const UpdateStatusResponseSchema = z.object({
   action_id: z.string().uuid(),
-  action_name: z.string(),
+  action_type: z.string(),
   action_status: z.string(),
   update_count: z.number().int(),
 });
@@ -104,7 +104,8 @@ const updateActionStatusHandler = async (
       .where(eq(dpgItemActions.action_id, action_id))
       .returning({
         action_id: dpgItemActions.action_id,
-        action_name: dpgItemActions.action_name,
+        action_type: dpgItemActions.action_type,
+        partition_network: dpgItemActions.partition_network,
         action_status: dpgItemActions.action_status,
         update_count: dpgItemActions.update_count,
         source_item_network: dpgItemActions.source_item_network,
@@ -113,16 +114,12 @@ const updateActionStatusHandler = async (
         source_item_id: dpgItemActions.source_item_id,
         source_item_instance_url: dpgItemActions.source_item_instance_url,
         source_item_owner: dpgItemActions.source_item_owner,
-        source_item_latitude: dpgItemActions.source_item_latitude,
-        source_item_longitude: dpgItemActions.source_item_longitude,
         target_item_network: dpgItemActions.target_item_network,
         target_item_domain: dpgItemActions.target_item_domain,
         target_item_type: dpgItemActions.target_item_type,
         target_item_id: dpgItemActions.target_item_id,
         target_item_instance_url: dpgItemActions.target_item_instance_url,
         target_item_owner: dpgItemActions.target_item_owner,
-        target_item_latitude: dpgItemActions.target_item_latitude,
-        target_item_longitude: dpgItemActions.target_item_longitude,
         requirements_snapshot: dpgItemActions.requirements_snapshot,
       });
 
@@ -136,7 +133,8 @@ const updateActionStatusHandler = async (
 
     const storedEvent = {
       origin_instance_domain: selfInstanceUrl,
-      action_name: updatedAction.action_name,
+      action_type: updatedAction.action_type,
+      partition_network: updatedAction.partition_network,
       action_id: updatedAction.action_id,
       action_status: updatedAction.action_status,
       update_count: updatedAction.update_count,
@@ -156,16 +154,17 @@ const updateActionStatusHandler = async (
       },
       source_item_owner: updatedAction.source_item_owner,
       target_item_owner: updatedAction.target_item_owner,
-      source_item_latitude: updatedAction.source_item_latitude,
-      source_item_longitude: updatedAction.source_item_longitude,
-      target_item_latitude: updatedAction.target_item_latitude,
-      target_item_longitude: updatedAction.target_item_longitude,
+      source_item_latitude: null,
+      source_item_longitude: null,
+      target_item_latitude: null,
+      target_item_longitude: null,
       event_payload: eventPayload,
       remarks: remarks ?? null,
     };
 
     await dpgDb.insert(dpgActionEvents).values({
-      action_name: storedEvent.action_name,
+      action_type: storedEvent.action_type,
+      partition_network: storedEvent.partition_network,
       origin_instance_domain: storedEvent.origin_instance_domain,
       action_id: storedEvent.action_id,
       action_status: storedEvent.action_status,
@@ -213,7 +212,7 @@ const updateActionStatusHandler = async (
 
     return reply.code(200).send({
       action_id: updatedAction.action_id,
-      action_name: updatedAction.action_name,
+      action_type: updatedAction.action_type,
       action_status: updatedAction.action_status,
       update_count: updatedAction.update_count,
     });

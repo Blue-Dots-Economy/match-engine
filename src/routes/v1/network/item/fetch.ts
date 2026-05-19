@@ -121,7 +121,7 @@ const fetchNetworkItemsHandler = async (
     if (!response.ok) {
       let errorBody: Record<string, unknown> = {};
       try {
-        errorBody = await response.json();
+        errorBody = await response.json() as Record<string, unknown>;
       } catch {
         errorBody = { message: response.statusText };
       }
