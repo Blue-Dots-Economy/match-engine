@@ -1,6 +1,6 @@
 # DPG Agent Interface
 
-API gateway for external agents to interact with DPG (Distributed Personal Graph).
+API gateway for external agents to interact with DPG.
 
 ## Quick Start
 
